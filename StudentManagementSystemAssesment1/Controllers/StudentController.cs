@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,6 +15,7 @@ namespace StudentManagementSystemAssesment1.Controllers
     //httpss;?/localhost:1234/api/students
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize]
     public class StudentController : ControllerBase
     {
         private readonly SMSDbContext dbContext;

@@ -48,22 +48,45 @@ namespace StudentManagementSystemAssessment1.UI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(AddStudentViewModel model)
+        public async Task<IActionResult> Add(StudentDto model)
         {
-            var client = httpClientFactory.CreateClient();
-            var httpRequestMessage = new HttpRequestMessage()
+            try
             {
-                Method = HttpMethod.Post,
-                RequestUri = new Uri("https://localhost:7100/api/Student"),
-                Content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json")
-            };
-            var httpResponseMessage = await client.SendAsync(httpRequestMessage);
-            httpResponseMessage.EnsureSuccessStatusCode();
+                var client = httpClientFactory.CreateClient();
+                var httpRequestMessage = new HttpRequestMessage()
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri("https://localhost:7100/api/Student"),
+                    Content = new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json")
+                };
+                var httpResponseMessage = await client.SendAsync(httpRequestMessage);
+                //httpResponseMessage.EnsureSuccessStatusCode();
 
-            var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
-            if(response is not null)
+                //var httpResponseMessage = await client.PostAsync("https://localhost:7100/api/Student", new StringContent(JsonSerializer.Serialize(model), Encoding.UTF8, "application/json"));
+
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
+                    if (response is not null)
+                    {
+                        return RedirectToAction("Index", "Students");
+                    }
+                }
+                else
+                {
+                    var errorResponse = await httpResponseMessage.Content.ReadAsStringAsync();
+                }
+
+                /*var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
+                if (response is not null)
+                {
+                    return RedirectToAction("Index", "Students");
+                }*/
+            }
+            catch (Exception)
             {
-                return RedirectToAction("Index", "Students");
+
+                throw;
             }
             return View();
         }
@@ -71,6 +94,8 @@ namespace StudentManagementSystemAssessment1.UI.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(Guid id)
         {
+            
+            
             var client = httpClientFactory.CreateClient();
 
             var response = await client.GetFromJsonAsync<StudentDto>($"https://localhost:7100/api/Student/{id.ToString()}");
@@ -96,35 +121,66 @@ namespace StudentManagementSystemAssessment1.UI.Controllers
             };
 
             var httpResponseMessage = await client.SendAsync(httpRequestMessage);
-            httpResponseMessage.EnsureSuccessStatusCode();
+            //httpResponseMessage.EnsureSuccessStatusCode();
 
-            var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
+            if (httpResponseMessage.IsSuccessStatusCode)
+            {
+                var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
+                if (response is not null)
+                {
+                    return RedirectToAction("Edit", "Students");
+                }
+            }
+            else
+            {
+                var errorResponse = await httpResponseMessage.Content.ReadAsStringAsync();
+            }
+
+            /*var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
 
             if(response is not null)
             {
                 return RedirectToAction("Edit", "Students");
-            }
+            }*/
 
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(StudentDto request)
+        [HttpGet]
+        public async Task<IActionResult> Delete(Guid id)
         {
+
             try
             {
                 var client = httpClientFactory.CreateClient();
 
-                var httpResponseMessage = await client.DeleteAsync($"https://localhost:7100/api/Student/{request.Id}");
+                var httpResponseMessage = await client.DeleteAsync($"https://localhost:7100/api/Student/{id}");
 
-                httpResponseMessage.EnsureSuccessStatusCode();
+                if (httpResponseMessage.IsSuccessStatusCode)
+                {
+                    var response = await httpResponseMessage.Content.ReadFromJsonAsync<StudentDto>();
+                    if (response is not null)
+                    {
+                        return RedirectToAction("Index", "Students");
+                    }
+                }
+                else
+                {
+                    var errorResponse = await httpResponseMessage.Content.ReadAsStringAsync();
+                }
 
-                return RedirectToAction("Index", "Students");
+                //httpResponseMessage.EnsureSuccessStatusCode();
+
+                //return RedirectToAction("Index", "Students");
             }
             catch (Exception ex)
             {
+
+                //
             }
-            return View("Edit");
+            
+            
+            return View("Delete");
         }
 
 

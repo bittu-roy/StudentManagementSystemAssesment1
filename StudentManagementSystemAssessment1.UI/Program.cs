@@ -11,9 +11,9 @@ builder.Services.AddRazorPages();
 //injecting HTTP client
 builder.Services.AddHttpClient();
 
-builder.Services.AddDbContext<AuthDbContext>(options =>
+/*builder.Services.AddDbContext<AuthDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SMSAuthConnectionString")));
-builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AuthDbContext>();
+builder.Services.AddIdentity<IdentityUser, IdentityRole>().AddEntityFrameworkStores<AuthDbContext>();*/
 
 var app = builder.Build();
 
@@ -30,7 +30,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
+//app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(

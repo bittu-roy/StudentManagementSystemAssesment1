@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using StudentManagementSystemAssesment1.Data;
 using StudentManagementSystemAssesment1.Mappings;
 using StudentManagementSystemAssesment1.Repositories;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,12 +19,47 @@ builder.Services.AddSwaggerGen();
 //injecting DbContext class
 builder.Services.AddDbContext<SMSDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("SMSConnectionString")));
+builder.Services.AddDbContext<SMSDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("SMSAuthConnectionString")));
+
 
 //injecting repository
 builder.Services.AddScoped<IStudentRepository, SQLStudentRepository>();
+//Adding TokenRepository and Create Token
+builder.Services.AddScoped<ITokenRepository, TokenRepository>();
 
 //Adding AutoMapper
 builder.Services.AddAutoMapper(typeof(AutoMapperProfiles));
+
+builder.Services.AddIdentityCore<IdentityUser>()
+    .AddRoles<IdentityRole>()
+    .AddTokenProvider<DataProtectorTokenProvider<IdentityUser>>("StudentManagementSystemAssessment1")
+    .AddEntityFrameworkStores<SMSAuthDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.Configure<IdentityOptions>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+});
+
+//Adding Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    });
 
 var app = builder.Build();
 
@@ -32,6 +71,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 
